@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "bank-react-native",
-    "slug": "bank-react-native",
-    "version": "1.0.0",
+    "name": "progresar-react-native",
+    "slug": "progresar-react-native",
+    "version": "25.8.11",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "bankreactnative",
+    "scheme": "progresarreactnative",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -17,7 +17,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.systered.bank"
+      "package": "com.systered.progresar"
     },
     "web": {
       "bundler": "metro",
@@ -42,7 +42,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "2614cde6-d96f-4c16-abfb-865e5d321c43"
+        "projectId": "d278a0bb-944c-4712-ac5b-0c0f6a0fdfac"
       }
     },
     "owner": "frankgp"
