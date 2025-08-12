@@ -1,7 +1,7 @@
 import React from "react";
 import { TouchableOpacity, Linking, StyleSheet, Image, Text } from "react-native";
-import { ColorsConstants } from "@/src/constants/Colors";
 import { FontAwesome6 } from "@expo/vector-icons";
+import { ColorsConstants } from "../config/Colors";
 
 interface IButtonFloat {
   url: string;

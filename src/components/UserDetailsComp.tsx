@@ -2,8 +2,8 @@ import { View, Text, FlatList, StyleSheet } from "react-native";
 import React from "react";
 import { Image } from "expo-image";
 import { validateImgPath } from "../utils/validateImgPath";
-import { apiBaseURL, iconUserUrl } from "../utils/varGlobal";
 import ButtonFloat from "./ButtonFloat";
+import { baseURL, iconUserUrl } from "../config/constants";
 
 export default function UserDetailsComp({ userDetail }: any) {
   return (
@@ -24,7 +24,6 @@ export default function UserDetailsComp({ userDetail }: any) {
 
       <Text style={styles.email}>{userDetail.email}</Text>
       <Text style={styles.phone}>WhatsApp: {userDetail.whatsapp || "—"}</Text>
-      <Text style={styles.operator}>Operador: {userDetail.operator?.name || "—"}</Text>
       <Text style={styles.date}>Creado el: {new Date(userDetail.createdAt).toLocaleDateString()}</Text>
 
       {/* Lista de dispositivos */}
@@ -44,7 +43,7 @@ export default function UserDetailsComp({ userDetail }: any) {
         <Text>No hay dispositivos registrados.</Text>
       )}
 
-      <ButtonFloat url={`${apiBaseURL}/dashboard/user/${userDetail.id}/update`} icon="pencil" />
+      <ButtonFloat url={`${baseURL}/dashboard/user/${userDetail.id}/update`} icon="pencil" />
     </View>
   );
 }

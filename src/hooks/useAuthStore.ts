@@ -1,33 +1,27 @@
+// src/store/useAuthStore.ts
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { apiBaseURL } from "@/src/utils/varGlobal";
+import { baseURL } from "../config/constants";
 
 interface IUser {
-  id: number;
-  firstName: string;
-  lastName: string | null;
+  _id: string;
   email: string;
-  whatsapp: string | null;
-  image: string;
-  role: string;
-  createdAt: string;
-  operator: IOperator | null;
-}
-
-interface IOperator {
-  id: any;
+  username: string;
   name: string;
-  email: string;
-  whatsapp: string | null;
-  website: string | null;
-  image: string | null;
-  registrationDate: string;
+  role: string;
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface IResponseUser {
-  user: IUser;
-  token: string;
   login: boolean;
+  user: IUser;
+  loginDate: string;
+  expirationDate: string;
+  currentDate: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 interface IAuthStore {
@@ -49,7 +43,7 @@ const useAuthStore = create<IAuthStore>((set) => ({
   setUser: (data) => {
     set({
       userStore: data,
-      token: data?.token,
+      token: data?.accessToken || null,
       isAdmin: data?.user?.role === "admin" || data?.user?.role === "collaborator",
     });
     AsyncStorage.setItem("userStore", JSON.stringify(data));
@@ -58,10 +52,10 @@ const useAuthStore = create<IAuthStore>((set) => ({
   getUserFromStorage: async () => {
     const data = await AsyncStorage.getItem("userStore");
     if (data) {
-      const parsedData = JSON.parse(data);
+      const parsedData: IResponseUser = JSON.parse(data);
       set({
         userStore: parsedData,
-        token: parsedData.token,
+        token: parsedData.accessToken || null,
         isAdmin: parsedData.user.role === "admin" || parsedData.user.role === "collaborator",
       });
     }
@@ -81,21 +75,21 @@ const useAuthStore = create<IAuthStore>((set) => ({
       const storedData = await AsyncStorage.getItem("userStore");
       if (!storedData) return;
 
-      const { token } = JSON.parse(storedData);
-      if (!token) return;
+      const parsedData: IResponseUser = JSON.parse(storedData);
+      if (!parsedData.refreshToken) return;
 
-      const res = await fetch(`${apiBaseURL}/api/auth/token/refresh`, {
+      const res = await fetch(`${baseURL}/api/auth/refresh-token`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${parsedData.refreshToken}`,
         },
       });
 
       if (res.ok) {
         const data = await res.json();
-        const updatedUser = { ...JSON.parse(storedData), token: data.newAccessToken };
-        set({ userStore: updatedUser, token: data.newAccessToken });
+        const updatedUser = { ...parsedData, accessToken: data.accessToken };
+        set({ userStore: updatedUser, token: data.accessToken });
         AsyncStorage.setItem("userStore", JSON.stringify(updatedUser));
       } else {
         console.error("Error al actualizar el token, cerrando sesión...");

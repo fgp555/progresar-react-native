@@ -2,7 +2,7 @@ import { TouchableOpacity } from "react-native";
 import React from "react";
 import Drawer from "expo-router/drawer";
 import { FontAwesome6, Ionicons } from "@expo/vector-icons";
-import { CustomDrawer } from "@/src/components/CustomDrawer";
+import { CustomDrawer } from "@/src/components/CustomDrawer/CustomDrawer";
 
 export default function DrawerLayout() {
   return (

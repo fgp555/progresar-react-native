@@ -1,5 +1,5 @@
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
-import { ColorsConstants } from "@/src/constants/Colors";
+import { ColorsConstants } from "../config/Colors";
 
 interface CustomButtonProps {
   title: string;

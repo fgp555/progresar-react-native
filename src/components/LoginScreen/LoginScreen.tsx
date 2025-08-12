@@ -1,70 +1,53 @@
-import useAuthStore from "@/src/store/useAuthStore";
-import { loginStyle as styles } from "@/src/styles/loginStyle";
-import { apiBaseURL, apiDomain } from "@/src/utils/varGlobal";
+// app/index.tsx
+
+import useAuthStore from "@/src/hooks/useAuthStore";
+import { loginStyle as styles } from "./LoginScreenStyle";
 import { FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
-} from "react-native";
+import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { backendDomain, baseURL } from "@/src/config/constants";
 
-export default function Index() {
-  const [email, setEmail] = useState("admin@transpaservic.com.co");
-  const [password, setPassword] = useState("*Transpa/*123");
+export default function LoginScreen() {
+  const [email, setEmail] = useState("admin@gmail.com");
+  const [password, setPassword] = useState("admin@gmail.com");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { token, setUser, userStore, getUserFromStorage, refreshToken } = useAuthStore();
-  const [isBackendConnected, setIsBackendConnected] = useState(false);
+  const [initializing, setInitializing] = useState(true); // 🔹 para carga inicial
+  const { token, setUser, getUserFromStorage, refreshToken } = useAuthStore();
 
   const router = useRouter();
+  const pathRedirect = "./operations";
 
   useEffect(() => {
-    getUserFromStorage();
-  }, []);
-
-  useEffect(() => {
-    const fetchUser = async () => {
+    const initAuth = async () => {
       await getUserFromStorage();
       await refreshToken();
-      console.log("token", token);
+      setInitializing(false); // 🔹 terminamos la carga inicial
     };
-
-    fetchUser();
+    initAuth();
   }, []);
-
-  const pathRedirect = "./order/list";
 
   useEffect(() => {
     if (token) {
-      // console.log("token2", token);
-      router.push(pathRedirect);
+      router.replace(pathRedirect); // 🔹 uso replace para que no vuelva atrás al login
     }
   }, [token]);
 
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${apiBaseURL}/api/auth/signin`, {
+      const res = await fetch(`${baseURL}/api/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      if (!res.ok) {
-        throw new Error("Something went wrong");
-      }
+      if (!res.ok) throw new Error("Something went wrong");
 
       const data = await res.json();
       setUser(data);
-      router.push(pathRedirect);
+      router.replace(pathRedirect);
     } catch (error) {
       console.error(error);
       alert("El servidor no responde.");
@@ -72,8 +55,20 @@ export default function Index() {
       setLoading(false);
     }
   };
+
   const [focusedInput, setFocusedInput] = useState<"email" | "password" | null>(null); // Guarda el input activo
   // const pathname = usePathname();
+
+  const year = new Date().getFullYear();
+
+  // 🔹 Loader inicial para evitar que se muestre el login unos segundos
+  if (initializing) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#b00" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
@@ -113,7 +108,7 @@ export default function Index() {
               </TouchableOpacity>
             </View>
             <Text style={[styles.label, styles.forgotPassword]}>
-              <Link href={`https://${apiDomain}/password/forgot`}>
+              <Link href={`https://${backendDomain}/password/forgot`}>
                 <Text style={styles.link}>RECUPERAR CONTRASEÑA</Text>
               </Link>
             </Text>
@@ -130,24 +125,16 @@ export default function Index() {
             </TouchableOpacity>
           )}
           <View style={{ height: 20 }} />
-          <TouchableOpacity style={styles.button2}>
-            <Link href={`https://${apiDomain}/consultas`}>
-              <View style={styles.buttonContent}>
-                <FontAwesome6 name="magnifying-glass" size={20} color="white" />
-                <Text style={styles.buttonText}>Consultas por Documento</Text>
-              </View>
-            </Link>
-          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.footer}>
         <Text style={styles.footerText}>
           Diseñado por{" "}
-          <Link href="https://www.systered.com" style={{ color: "#b00" }}>
+          <Link href="https://systered.com" style={{ color: "#b00" }}>
             Systered.com
           </Link>
         </Text>
-        <Text style={styles.footerText}>Sistemas y Redes © 2025</Text>
+        <Text style={styles.footerText}>Sistemas y Redes © {year}</Text>
       </View>
     </ScrollView>
   );

@@ -9,14 +9,14 @@ import {
   RefreshControl,
   TextInput,
 } from "react-native";
-import React, { useEffect, useState, useCallback } from "react";
 import { apiUserService } from "@/src/services/apiUser";
-import { ColorsConstants } from "@/src/constants/Colors";
-import { apiBaseURL, iconUserUrl } from "@/src/utils/varGlobal";
 import { Redirect, useRouter } from "expo-router";
-import ButtonFloat from "@/src/components/ButtonFloat";
 import { validateImgPath } from "@/src/utils/validateImgPath";
-import useAuthStore from "@/src/store/useAuthStore";
+import ButtonFloat from "@/src/components/ButtonFloat";
+import React, { useEffect, useState, useCallback } from "react";
+import useAuthStore from "@/src/hooks/useAuthStore";
+import { ColorsConstants } from "@/src/config/Colors";
+import { baseURL, iconUserUrl } from "@/src/config/constants";
 
 export default function UserScreen() {
   const [users, setUsers] = useState<{ results: any[] }>({ results: [] });
@@ -26,7 +26,7 @@ export default function UserScreen() {
   const router = useRouter() as any;
   const [search, setSearch] = useState("");
   const { isAdmin } = useAuthStore();
-  const pathRedirect = "/order/list";
+  const pathRedirect = "./operations";
 
   if (!isAdmin) return <Redirect href={pathRedirect} />;
 
@@ -83,13 +83,12 @@ export default function UserScreen() {
                 </Text>
                 <Text style={styles.email}>{user.email}</Text>
                 <Text style={styles.role}>Rol: {user.role === "admin" ? "Administrador" : "Usuario"}</Text>
-                <Text style={styles.operator}>Operador: {user.operator?.name || "N/A"}</Text>
               </View>
             </TouchableOpacity>
           ))
         )}
       </ScrollView>
-      <ButtonFloat url={`${apiBaseURL}/dashboard/user/register`} />
+      <ButtonFloat url={`${baseURL}/dashboard/user/register`} />
     </View>
   );
 }

@@ -2,9 +2,6 @@ import { View, Text, Image, ActivityIndicator, StyleSheet, FlatList } from "reac
 import React, { useEffect, useState } from "react";
 import { apiUserService } from "@/src/services/apiUser";
 import { useLocalSearchParams } from "expo-router";
-import { apiBaseURL, iconUserUrl } from "@/src/utils/varGlobal";
-import { validateImgPath } from "@/src/utils/validateImgPath";
-import ButtonFloat from "@/src/components/ButtonFloat";
 import UserDetailsComp from "@/src/components/UserDetailsComp";
 
 export default function UserDetailsScreen() {

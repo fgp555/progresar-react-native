@@ -28,15 +28,13 @@ export const customDrawerstyles = StyleSheet.create({
   button: {
     flexDirection: "row",
     marginVertical: 5,
-    paddingVertical: 10,
+    paddingVertical: 3,
     paddingHorizontal: 20,
     alignItems: "center",
   },
   buttonContainer: {
     flexDirection: "row",
     marginVertical: 5,
-    // paddingVertical: 10,
-    // paddingHorizontal: 20,
     alignItems: "center",
     justifyContent: "space-between",
   },

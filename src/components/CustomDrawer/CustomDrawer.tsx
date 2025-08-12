@@ -1,19 +1,18 @@
-import { FontAwesome6 } from "@expo/vector-icons";
+import { androidVersion, backendDomain, playStoreUrl } from "@/src/config/constants";
+import { customDrawerstyles as styles } from "./customDrawerStyles";
 import { DrawerContentComponentProps, DrawerContentScrollView } from "@react-navigation/drawer";
+import { FontAwesome6 } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { Linking, Text, TouchableOpacity, View } from "react-native";
 import { usePathname, useRouter } from "expo-router";
 import React from "react";
-import { Linking, Text, TouchableOpacity, View } from "react-native";
-import useAuthStore from "../store/useAuthStore";
-import { customDrawerstyles as styles } from "../styles/customDrawerstyles";
-import { androidVersion, apiDomain, logoBusinessImg, playStoreUrl } from "../utils/varGlobal";
+import useAuthStore from "@/src/hooks/useAuthStore";
 
 export const CustomDrawer = (props: DrawerContentComponentProps) => {
   const router = useRouter() as any;
   const pathname = usePathname();
   const { userStore, removeUser, token, isAdmin } = useAuthStore();
   const user = userStore?.user;
-  const email = user?.email;
 
   const handleLogout = () => {
     removeUser();
@@ -24,30 +23,44 @@ export const CustomDrawer = (props: DrawerContentComponentProps) => {
     <DrawerContentScrollView {...props} contentContainerStyle={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Image source={{ uri: logoBusinessImg }} style={styles.img} />
+          {/* <Image source={{ uri: logoBusinessImg }} style={styles.img} /> */}
+          <Image source={require("@/src/assets/images/logo-business.png")} style={styles.img} />
         </View>
-
         <TouchableOpacity
-          onPress={() => router.push("/order/list")}
-          style={[styles.buttonContainer, pathname === "/order/list" && styles.activeButton]}
+          onPress={() => router.push("/operations")}
+          style={[styles.buttonContainer, pathname === "/operations" && styles.activeButton]}
         >
           <View style={styles.button}>
             <FontAwesome6
-              name="list-check"
+              name="landmark"
               size={16}
-              color={pathname === "/order/list" ? "#fff" : "#333"}
+              color={pathname === "/operations" ? "#fff" : "#333"}
               style={styles.icon}
             />
-            <Text style={[styles.buttonText, pathname === "/order/list" && styles.activeButtonText]}>Ordenes</Text>
+            <Text style={[styles.buttonText, pathname === "/operations" && styles.activeButtonText]}>Operaciones</Text>
           </View>
           <FontAwesome6
             name="chevron-right"
             size={16}
-            color={pathname === "/order/list" ? "#fff" : "#333"}
+            color={pathname === "/operations" ? "#fff" : "#333"}
             style={styles.icon}
           />
         </TouchableOpacity>
-
+        <TouchableOpacity
+          onPress={() => router.push("/profile")}
+          style={[styles.buttonContainer, pathname === "/profile" && styles.activeButton]}
+        >
+          <View style={styles.button}>
+            <FontAwesome6 name="user" size={16} color={pathname === "/profile" ? "#fff" : "#333"} style={styles.icon} />
+            <Text style={[styles.buttonText, pathname === "/profile" && styles.activeButtonText]}>Mi Perfil</Text>
+          </View>
+          <FontAwesome6
+            name="chevron-right"
+            size={16}
+            color={pathname === "/profile" ? "#fff" : "#333"}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
         {isAdmin && (
           <>
             <TouchableOpacity
@@ -70,53 +83,7 @@ export const CustomDrawer = (props: DrawerContentComponentProps) => {
                 style={styles.icon}
               />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.push("/operator/list")}
-              style={[styles.buttonContainer, pathname === "/operator/list" && styles.activeButton]}
-            >
-              <View style={styles.button}>
-                <FontAwesome6
-                  name="briefcase"
-                  size={16}
-                  color={pathname === "/operator/list" ? "#fff" : "#333"}
-                  style={styles.icon}
-                />
-                <Text style={[styles.buttonText, pathname === "/operator/list" && styles.activeButtonText]}>
-                  Operadores
-                </Text>
-              </View>
-              <FontAwesome6
-                name="chevron-right"
-                size={16}
-                color={pathname === "/operator/list" ? "#fff" : "#333"}
-                style={styles.icon}
-              />
-            </TouchableOpacity>
           </>
-        )}
-        {user && user.id && (
-          <TouchableOpacity
-            onPress={() => router.push(`/user/details/${user.id}`)}
-            style={[styles.buttonContainer, pathname === `/user/details/${user.id}` && styles.activeButton]}
-          >
-            <View style={styles.button}>
-              <FontAwesome6
-                name="user"
-                size={16}
-                color={pathname === `/user/details/${user.id}` ? "#fff" : "#333"}
-                style={styles.icon}
-              />
-              <Text style={[styles.buttonText, pathname === `/user/details/${user.id}` && styles.activeButtonText]}>
-                Mi Cuenta
-              </Text>
-            </View>
-            <FontAwesome6
-              name="chevron-right"
-              size={16}
-              color={pathname === `/user/details/${user.id}` ? "#fff" : "#333"}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
         )}
       </View>
 
@@ -136,7 +103,7 @@ export const CustomDrawer = (props: DrawerContentComponentProps) => {
               color={pathname === "/about" ? "#fff" : "#333"}
               style={styles.icon}
             />
-            <Text style={[styles.buttonText, pathname === "/about" && styles.activeButtonText]}>Quienes Somos</Text>
+            <Text style={[styles.buttonText, pathname === "/about" && styles.activeButtonText]}>Acerca de</Text>
           </View>
           <FontAwesome6
             name="chevron-right"
@@ -152,10 +119,10 @@ export const CustomDrawer = (props: DrawerContentComponentProps) => {
           </View>
           <FontAwesome6 name="up-right-from-square" size={16} color={"#333"} style={styles.icon} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => Linking.openURL(`https://${apiDomain}`)} style={[styles.buttonContainer]}>
+        <TouchableOpacity onPress={() => Linking.openURL(`https://${backendDomain}`)} style={[styles.buttonContainer]}>
           <View style={styles.button}>
             <FontAwesome6 name="globe" size={16} color={"#333"} style={styles.icon} />
-            <Text style={[styles.buttonText]}>{apiDomain}</Text>
+            <Text style={[styles.buttonText]}>{backendDomain}</Text>
           </View>
           <FontAwesome6 name="up-right-from-square" size={16} color={"#333"} style={styles.icon} />
         </TouchableOpacity>

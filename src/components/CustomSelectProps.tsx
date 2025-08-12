@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, FlatList, Modal, StyleSheet, TouchableWithoutFeedback } from "react-native";
 import { Ionicons } from "@expo/vector-icons"; // Ícono para el dropdown
-import { ColorsConstants } from "@/src/constants/Colors"; // Ajusta la ruta según la ubicación de tu archivo
+import { ColorsConstants } from "../config/Colors";
 
 interface Option {
   label: string;

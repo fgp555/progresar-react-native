@@ -1,10 +1,10 @@
-import React, { useLayoutEffect } from "react";
-import { Slot, Tabs, useNavigation, usePathname, useRouter } from "expo-router";
-import { View, TouchableOpacity, Text, StyleSheet, Linking } from "react-native";
 import { FontAwesome6, Ionicons } from "@expo/vector-icons";
-import useAuthStore from "@/src/store/useAuthStore";
-import { apiBaseURL } from "@/src/utils/varGlobal";
-import { ColorsConstants } from "@/src/constants/Colors";
+import { Tabs, useNavigation, usePathname, useRouter } from "expo-router";
+import { View, TouchableOpacity, Text, StyleSheet, Linking } from "react-native";
+import React, { useLayoutEffect } from "react";
+import useAuthStore from "@/src/hooks/useAuthStore";
+import { ColorsConstants } from "@/src/config/Colors";
+import { baseURL } from "@/src/config/constants";
 
 export default function OrderListLayout() {
   const navigation = useNavigation();
@@ -13,11 +13,11 @@ export default function OrderListLayout() {
   // const showTabs = true;
   const pathname = usePathname(); // Obtiene la ruta actual
 
-  const showTabs = !pathname.startsWith("/order/approval/");
+  const showTabs = !pathname.startsWith("/operations/");
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: "Ordenes",
+      title: "Operaciones",
     });
   }, [navigation]);
 
@@ -31,8 +31,8 @@ export default function OrderListLayout() {
           <CustomTabButton
             title="Buscar"
             icon="magnifying-glass"
-            onPress={() => router.push("/order/list")}
-            iconColor={pathname === "/order/list" ? "#b00" : ColorsConstants.light.gray}
+            onPress={() => router.push("/operations")}
+            iconColor={pathname === "/operations" ? "#b00" : ColorsConstants.light.gray}
           />
           {isAdmin && (
             <>
@@ -40,7 +40,7 @@ export default function OrderListLayout() {
                 title="Agregar"
                 icon="plus"
                 // onPress={() => router.push("/order/create")}
-                onPress={() => Linking.openURL(`${apiBaseURL}/dashboard/order/create`)}
+                onPress={() => Linking.openURL(`${baseURL}/dashboard/order/create`)}
               />
               <CustomTabButton
                 title="Reportes"

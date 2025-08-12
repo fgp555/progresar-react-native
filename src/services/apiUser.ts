@@ -1,4 +1,4 @@
-import axiosCreate from "@/src/services/axiosCreate";
+import axiosInstance from "../config/axiosInstance";
 
 export const apiUserService = {
   async getAllUsers(filters: any) {
@@ -15,7 +15,7 @@ export const apiUserService = {
       if (limit) params.append("limit", limit);
 
       // Realizar la solicitud GET con los filtros
-        const response = await axiosCreate.get(`/api/users/findAll?${params.toString()}`);
+        const response = await axiosInstance.get(`/api/users/findAll?${params.toString()}`);
       // const response = await axiosCreate.get(`/api/users/findAll`);
       return response.data;
     } catch (error) {
@@ -26,7 +26,7 @@ export const apiUserService = {
 
   async getUserById(userId: any) {
     try {
-      const response = await axiosCreate.get(`/api/users/findOne/${userId}`);
+      const response = await axiosInstance.get(`/api/users/findOne/${userId}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching user with ID ${userId}:`, error);
