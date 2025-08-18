@@ -1,34 +1,46 @@
-import { Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Linking, StyleSheet, Text, TouchableOpacity, View, StatusBar } from "react-native";
 import React from "react";
 import Drawer from "expo-router/drawer";
-import { FontAwesome6, Ionicons } from "@expo/vector-icons";
+import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import { androidVersion, backendDomain, playStoreUrl } from "@/src/config/constants";
 import { DrawerContentComponentProps, DrawerContentScrollView } from "@react-navigation/drawer";
 import { Image } from "expo-image";
 import { usePathname, useRouter } from "expo-router";
 import useAuthStore from "@/src/hooks/useAuthStore";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 
-export default function DrawerLayout() {
+export default function BankingDrawerLayout() {
   return (
     <Drawer
-      drawerContent={CustomDrawer}
+      drawerContent={CustomBankingDrawer}
       screenOptions={({ navigation }) => ({
         drawerPosition: "left",
         headerLeft: () => (
-          <TouchableOpacity onPress={() => navigation.toggleDrawer()} style={{ marginLeft: 15 }}>
-            {/* <Ionicons name="grid-outline" size={30} color="white" /> */}
-            <FontAwesome6 name="bars" size={24} color="#b00" />
+          <TouchableOpacity onPress={() => navigation.toggleDrawer()} style={styles.headerButton}>
+            <MaterialIcons name="menu" size={26} color="#1e40af" />
           </TouchableOpacity>
         ),
         headerTitleAlign: "center",
-        // headerStyle: { backgroundColor: "#b00" },
-        headerTintColor: "#b00",
+        headerStyle: {
+          backgroundColor: "white",
+          shadowColor: "#1e40af",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 4,
+        },
+        headerTintColor: "#1e40af",
+        headerTitleStyle: {
+          fontWeight: "600",
+          fontSize: 18,
+        },
       })}
-    ></Drawer>
+    />
   );
 }
 
-const CustomDrawer = (props: DrawerContentComponentProps) => {
+const CustomBankingDrawer = (props: DrawerContentComponentProps) => {
   const router = useRouter() as any;
   const pathname = usePathname();
   const { userStore, removeUser, token, isAdmin } = useAuthStore();
@@ -38,203 +50,375 @@ const CustomDrawer = (props: DrawerContentComponentProps) => {
     router.push("/");
   };
 
-  return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          {/* <Image source={{ uri: logoBusinessImg }} style={styles.img} /> */}
-          <Image source={require("@/src/assets/images/logo-business.png")} style={styles.img} />
-        </View>
-        <TouchableOpacity
-          onPress={() => router.push("/operations")}
-          style={[styles.buttonContainer, pathname === "/operations" && styles.activeButton]}
-        >
-          <View style={styles.button}>
-            <FontAwesome6
-              name="landmark"
-              size={16}
-              color={pathname === "/operations" ? "#fff" : "#333"}
-              style={styles.icon}
-            />
-            <Text style={[styles.buttonText, pathname === "/operations" && styles.activeButtonText]}>Operaciones</Text>
-          </View>
-          <FontAwesome6
-            name="chevron-right"
-            size={16}
-            color={pathname === "/operations" ? "#fff" : "#333"}
-            style={styles.icon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.push("/profile")}
-          style={[styles.buttonContainer, pathname === "/profile" && styles.activeButton]}
-        >
-          <View style={styles.button}>
-            <FontAwesome6 name="user" size={16} color={pathname === "/profile" ? "#fff" : "#333"} style={styles.icon} />
-            <Text style={[styles.buttonText, pathname === "/profile" && styles.activeButtonText]}>Mi Perfil</Text>
-          </View>
-          <FontAwesome6
-            name="chevron-right"
-            size={16}
-            color={pathname === "/profile" ? "#fff" : "#333"}
-            style={styles.icon}
-          />
-        </TouchableOpacity>
-        {isAdmin && (
-          <>
-            <TouchableOpacity
-              onPress={() => router.push("/user/list")}
-              style={[styles.buttonContainer, pathname === "/user/list" && styles.activeButton]}
-            >
-              <View style={styles.button}>
-                <FontAwesome6
-                  name="users"
-                  size={16}
-                  color={pathname === "/user/list" ? "#fff" : "#333"}
-                  style={styles.icon}
-                />
-                <Text style={[styles.buttonText, pathname === "/user/list" && styles.activeButtonText]}>Usuarios</Text>
-              </View>
-              <FontAwesome6
-                name="chevron-right"
-                size={16}
-                color={pathname === "/user/list" ? "#fff" : "#333"}
-                style={styles.icon}
-              />
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
+  const getMenuItems = () => {
+    const baseItems = [
+      {
+        title: "Panel Principal",
+        icon: "dashboard" as const,
+        route: "/operations",
+      },
+      {
+        title: "Mi Perfil",
+        icon: "account-circle" as const,
+        route: "/profile",
+      },
+    ];
 
-      <View style={styles.logoutContainer}>
-        <TouchableOpacity onPress={handleLogout} style={[styles.button, styles.logoutButton]}>
-          <FontAwesome6 name="right-from-bracket" size={16} style={styles.icon} color={"#b00"} />
-          <Text style={[styles.buttonText, styles.logoutButtonText]}>Cerrar Sesión</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.push("/about")}
-          style={[styles.buttonContainer, pathname === "/about" && styles.activeButton]}
-        >
-          <View style={styles.button}>
-            <FontAwesome6
-              name="circle-info"
-              size={16}
-              color={pathname === "/about" ? "#fff" : "#333"}
-              style={styles.icon}
-            />
-            <Text style={[styles.buttonText, pathname === "/about" && styles.activeButtonText]}>Acerca de</Text>
+    const adminItems = isAdmin
+      ? [
+          {
+            title: "Gestión de Usuarios",
+            icon: "group" as const,
+            route: "/user/list",
+          },
+        ]
+      : [];
+
+    const aboutItem = {
+      title: "Acerca del Sistema",
+      icon: "info" as const,
+      route: "/about",
+    };
+
+    return [...baseItems, ...adminItems, aboutItem];
+  };
+
+  const menuItems = getMenuItems();
+
+  return (
+    <LinearGradient colors={["#1e3a8a", "#1e40af", "#3730a3"]} style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#1e3a8a" />
+
+      <DrawerContentScrollView
+        {...props}
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header Section */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoWrapper}>
+              <MaterialIcons name="account-balance" size={40} color="#3b82f6" />
+            </View>
+            <Text style={styles.bankTitle}>PROGRESAR</Text>
+            <Text style={styles.bankSubtitle}>Proyeccion Fondo De Ahorro</Text>
           </View>
-          <FontAwesome6
-            name="chevron-right"
-            size={16}
-            color={pathname === "/about" ? "#fff" : "#333"}
-            style={styles.icon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => Linking.openURL(playStoreUrl)} style={[styles.buttonContainer]}>
-          <View style={styles.button}>
-            <FontAwesome6 name="google-play" size={16} color={"#333"} style={styles.icon} />
-            <Text style={[styles.buttonText]}>Actualizar</Text>
-          </View>
-          <FontAwesome6 name="up-right-from-square" size={16} color={"#333"} style={styles.icon} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => Linking.openURL(`https://${backendDomain}`)} style={[styles.buttonContainer]}>
-          <View style={styles.button}>
-            <FontAwesome6 name="globe" size={16} color={"#333"} style={styles.icon} />
-            <Text style={[styles.buttonText]}>{backendDomain}</Text>
-          </View>
-          <FontAwesome6 name="up-right-from-square" size={16} color={"#333"} style={styles.icon} />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.buttonContainer]}>
-          <View style={styles.button}>
-            <FontAwesome6 name="download" size={16} color={"#777"} style={styles.icon} />
-            <Text
-              style={[
-                styles.buttonText,
-                {
-                  color: "#777",
-                },
-              ]}
+
+          {/* User Info */}
+          {userStore && (
+            <BlurView intensity={20} tint="light" style={styles.userCard}>
+              <View style={styles.userAvatar}>
+                <MaterialIcons name="person" size={24} color="#1e40af" />
+              </View>
+              <View style={styles.userInfo}>
+                <Text style={styles.userName}>{userStore.user.name || "Usuario"}</Text>
+                <Text style={styles.userEmail}>{userStore.user.email}</Text>
+                {isAdmin && (
+                  <View style={styles.adminBadge}>
+                    <MaterialIcons name="admin-panel-settings" size={12} color="#fbbf24" />
+                    <Text style={styles.adminText}>ADMINISTRADOR</Text>
+                  </View>
+                )}
+              </View>
+            </BlurView>
+          )}
+        </View>
+
+        {/* Navigation Menu */}
+        <View style={styles.menuContainer}>
+          <Text style={styles.menuSectionTitle}>NAVEGACIÓN</Text>
+
+          {menuItems.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => router.push(item.route)}
+              style={[styles.menuItem, pathname === item.route && styles.activeMenuItem]}
             >
-              build {androidVersion}
-            </Text>
-          </View>
+              <BlurView
+                intensity={pathname === item.route ? 30 : 15}
+                tint={pathname === item.route ? "light" : "default"}
+                style={styles.menuItemContent}
+              >
+                <View style={styles.menuItemLeft}>
+                  <MaterialIcons
+                    name={item.icon}
+                    size={20}
+                    color={pathname === item.route ? "#3b82f6" : "rgba(255,255,255,0.8)"}
+                  />
+                  <Text style={[styles.menuItemText, pathname === item.route && styles.activeMenuItemText]}>
+                    {item.title}
+                  </Text>
+                </View>
+                <MaterialIcons
+                  name="chevron-right"
+                  size={16}
+                  color={pathname === item.route ? "#3b82f6" : "rgba(255,255,255,0.6)"}
+                />
+              </BlurView>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.quickActionsContainer}>
+          <Text style={styles.menuSectionTitle}>ACCIONES RÁPIDAS</Text>
+
+          <TouchableOpacity onPress={() => Linking.openURL(playStoreUrl)} style={styles.quickActionItem}>
+            <BlurView intensity={15} tint="default" style={styles.menuItemContent}>
+              <View style={styles.menuItemLeft}>
+                <MaterialIcons name="system-update" size={20} color="rgba(255,255,255,0.8)" />
+                <Text style={styles.menuItemText}>Actualizar App</Text>
+              </View>
+              <MaterialIcons name="open-in-new" size={16} color="rgba(255,255,255,0.6)" />
+            </BlurView>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => Linking.openURL(`https://${backendDomain}`)} style={styles.quickActionItem}>
+            <BlurView intensity={15} tint="default" style={styles.menuItemContent}>
+              <View style={styles.menuItemLeft}>
+                <MaterialIcons name="language" size={20} color="rgba(255,255,255,0.8)" />
+                <Text style={styles.menuItemText}>Portal Web</Text>
+              </View>
+              <MaterialIcons name="open-in-new" size={16} color="rgba(255,255,255,0.6)" />
+            </BlurView>
+          </TouchableOpacity>
+        </View>
+      </DrawerContentScrollView>
+
+      {/* Footer Section */}
+      <View style={styles.footer}>
+        {/* Logout Button */}
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <LinearGradient colors={["#dc2626", "#b91c1c"]} style={styles.logoutGradient}>
+            <MaterialIcons name="logout" size={20} color="white" />
+            <Text style={styles.logoutText}>Cerrar Sesión</Text>
+          </LinearGradient>
         </TouchableOpacity>
+
+        {/* Version Info */}
+        <View style={styles.versionContainer}>
+          <MaterialIcons name="info-outline" size={14} color="rgba(255,255,255,0.6)" />
+          <Text style={styles.versionText}>Versión {androidVersion}</Text>
+        </View>
+        <View style={styles.versionContainer}>
+          <MaterialIcons name="language" size={14} color="rgba(255,255,255,0.6)" />
+          <Text style={styles.versionText}>{`https://${backendDomain}`}</Text>
+        </View>
+
+        {/* Security Badge */}
+        <View style={styles.securityFooter}>
+          <MaterialIcons name="security" size={14} color="#22c55e" />
+          <Text style={styles.securityText}>Conexión Segura</Text>
+        </View>
       </View>
-    </DrawerContentScrollView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
-  content: {
-    flex: 1,
+  headerButton: {
+    marginLeft: 15,
+    padding: 5,
   },
+  scrollContainer: {
+    flexGrow: 1,
+  },
+
+  // Header Styles
   header: {
-    paddingVertical: 20,
-    paddingHorizontal: 15,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  logoContainer: {
     alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  headerText: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  img: {
-    width: 281,
-    height: 72,
     marginBottom: 20,
   },
-  button: {
-    flexDirection: "row",
-    marginVertical: 5,
-    paddingVertical: 3,
-    paddingHorizontal: 20,
+  logoWrapper: {
+    width: 70,
+    height: 70,
+    backgroundColor: "white",
+    borderRadius: 18,
+    justifyContent: "center",
     alignItems: "center",
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  buttonContainer: {
+  bankTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "white",
+    letterSpacing: 1,
+  },
+  bankSubtitle: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.8)",
+    marginTop: 2,
+  },
+
+  // User Card Styles
+  userCard: {
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 16,
+    padding: 16,
     flexDirection: "row",
-    marginVertical: 5,
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  userAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "white",
+    marginBottom: 2,
+  },
+  userEmail: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.8)",
+    marginBottom: 4,
+  },
+  adminBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(251,191,36,0.2)",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    alignSelf: "flex-start",
+  },
+  adminText: {
+    fontSize: 10,
+    color: "#fbbf24",
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+
+  // Menu Styles
+  menuContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  quickActionsContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  menuSectionTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.6)",
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  menuItem: {
+    marginBottom: 8,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  quickActionItem: {
+    marginBottom: 8,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  activeMenuItem: {
+    // Additional styling handled by BlurView intensity
+  },
+  menuItemContent: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
-  icon: {
-    marginRight: 10,
+  menuItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
   },
-  activeButton: {
-    backgroundColor: "#b00",
+  menuItemText: {
+    fontSize: 15,
+    color: "rgba(255,255,255,0.9)",
+    marginLeft: 12,
+    fontWeight: "500",
   },
-  buttonText: {
-    fontSize: 16,
-    color: "#333",
+  activeMenuItemText: {
+    color: "#3b82f6",
+    fontWeight: "600",
   },
-  activeButtonText: {
-    color: "#fff",
+
+  // Footer Styles
+  footer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 10,
   },
-  logoutContainer: {
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+  logoutButton: {
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  logoutButton: {},
-  logoutButtonText: {
-    color: "#b00",
-    textAlign: "center",
+  logoutGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
-  profileContainer: {
-    padding: 15,
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+  logoutText: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: "600",
+    marginLeft: 8,
   },
-  profileButton: {
-    backgroundColor: "#2196f3",
+  versionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
-  profileButtonText: {
-    color: "#fff",
-    textAlign: "center",
+  versionText: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.6)",
+    marginLeft: 6,
+  },
+  securityFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(34,197,94,0.1)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(34,197,94,0.2)",
+  },
+  securityText: {
+    fontSize: 11,
+    color: "#22c55e",
+    fontWeight: "600",
+    marginLeft: 6,
   },
 });
