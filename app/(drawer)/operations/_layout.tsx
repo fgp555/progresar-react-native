@@ -21,13 +21,13 @@ export default function BankingTabLayout() {
       title: "Centro de Operaciones",
       headerStyle: {
         backgroundColor: "white",
-        shadowColor: "#1e40af",
+        shadowColor: "#dc2626",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 4,
       },
-      headerTintColor: "#1e40af",
+      headerTintColor: "#dc2626",
       headerTitleStyle: {
         fontWeight: "600",
         fontSize: 18,
@@ -45,7 +45,7 @@ export default function BankingTabLayout() {
       />
       {showTabs && (
         <View style={styles.tabContainer}>
-          <LinearGradient colors={["rgba(30, 64, 175, 0.95)", "rgba(55, 48, 163, 0.95)"]} style={styles.tabBackground}>
+          <LinearGradient colors={["rgba(220, 38, 38, 0.95)", "rgba(153, 27, 27, 0.95)"]} style={styles.tabBackground}>
             <BlurView intensity={20} tint="light" style={styles.tabBlur}>
               <View style={styles.customTabBar}>
                 {/* Buscar/Consultar */}
@@ -108,7 +108,7 @@ export default function BankingTabLayout() {
 
           {/* Security indicator */}
           <View style={styles.securityIndicator}>
-            <MaterialIcons name="security" size={12} color="#22c55e" />
+            <MaterialIcons name="security" size={12} color="#fca5a5" />
             <Text style={styles.securityText}>Sesión Segura</Text>
           </View>
         </View>
@@ -141,19 +141,16 @@ const BankingTabButton = ({
       activeOpacity={0.7}
     >
       {isActive && (
-        <LinearGradient
-          colors={["rgba(59, 130, 246, 0.3)", "rgba(37, 99, 235, 0.3)"]}
-          style={styles.activeBackground}
-        />
+        <LinearGradient colors={["rgba(239, 68, 68, 0.3)", "rgba(220, 38, 38, 0.3)"]} style={styles.activeBackground} />
       )}
 
       <View style={styles.iconContainer}>
-        <MaterialIcons name={materialIcon} size={24} color={isActive ? "#3b82f6" : "rgba(255,255,255,0.8)"} />
+        <MaterialIcons name={materialIcon} size={24} color={isActive ? "#dc2626" : "rgba(255,255,255,0.8)"} />
         {isExternal && (
           <MaterialIcons
             name="open-in-new"
             size={12}
-            color={isActive ? "#3b82f6" : "rgba(255,255,255,0.6)"}
+            color={isActive ? "#dc2626" : "rgba(255,255,255,0.6)"}
             style={styles.externalIcon}
           />
         )}
@@ -204,7 +201,7 @@ const styles = StyleSheet.create({
   },
   activeTabButton: {
     backgroundColor: "rgba(255,255,255,0.15)",
-    shadowColor: "#3b82f6",
+    shadowColor: "#dc2626",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -235,7 +232,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   activeTabButtonText: {
-    color: "#3b82f6",
+    color: "#dc2626",
     fontWeight: "700",
   },
   tabButtonDescription: {
@@ -245,7 +242,7 @@ const styles = StyleSheet.create({
     lineHeight: 10,
   },
   activeTabButtonDescription: {
-    color: "rgba(59, 130, 246, 0.8)",
+    color: "rgba(220, 38, 38, 0.8)",
   },
   activeIndicator: {
     position: "absolute",
@@ -254,7 +251,7 @@ const styles = StyleSheet.create({
     marginLeft: -12,
     width: 24,
     height: 3,
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#dc2626",
     borderRadius: 2,
   },
   securityIndicator: {
@@ -266,7 +263,7 @@ const styles = StyleSheet.create({
   },
   securityText: {
     fontSize: 10,
-    color: "#22c55e",
+    color: "#fca5a5",
     fontWeight: "600",
     marginLeft: 4,
   },
@@ -274,10 +271,10 @@ const styles = StyleSheet.create({
 
 // Colores de referencia para mantener consistencia
 const BankingColors = {
-  primary: "#1e40af",
-  secondary: "#3730a3",
-  accent: "#3b82f6",
-  success: "#22c55e",
+  primary: "#dc2626",
+  secondary: "#991b1b",
+  accent: "#ef4444",
+  success: "#fca5a5",
   warning: "#fbbf24",
   danger: "#dc2626",
   light: {

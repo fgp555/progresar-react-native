@@ -18,7 +18,7 @@ import { Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import useAuthStore from "@/src/hooks/useAuthStore";
-import { baseURL } from "@/src/config/constants";
+import { backendDomain, baseURL } from "@/src/config/constants";
 
 const { width, height } = Dimensions.get("window");
 
@@ -57,9 +57,7 @@ export default function BankingLoginScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       if (!res.ok) throw new Error("Something went wrong");
-
       const data = await res.json();
       setUser(data);
       router.replace(pathRedirect);
@@ -76,8 +74,8 @@ export default function BankingLoginScreen() {
   // Pantalla de carga inicial
   if (initializing) {
     return (
-      <LinearGradient colors={["#1e3a8a", "#1e40af", "#3730a3"]} style={styles.initContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#1e3a8a" />
+      <LinearGradient colors={["#dc2626", "#b91c1c", "#991b1b"]} style={styles.initContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#dc2626" />
         <View style={styles.initContent}>
           <View style={styles.logoContainer}>
             <MaterialIcons name="account-balance" size={60} color="white" />
@@ -95,8 +93,8 @@ export default function BankingLoginScreen() {
   }
 
   return (
-    <LinearGradient colors={["#1e3a8a", "#1e40af", "#3730a3"]} style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1e3a8a" />
+    <LinearGradient colors={["#dc2626", "#b91c1c", "#991b1b"]} style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#dc2626" />
 
       {/* Header de Seguridad */}
       <View style={styles.securityBadge}>
@@ -113,7 +111,7 @@ export default function BankingLoginScreen() {
           {/* Logo y Header */}
           <View style={styles.header}>
             <View style={styles.logoWrapper}>
-              <MaterialIcons name="account-balance" size={50} color="#3b82f6" />
+              <MaterialIcons name="account-balance" size={50} color="#dc2626" />
             </View>
             <Text style={styles.bankName}>PROGRESAR</Text>
             <Text style={styles.systemName}>Proyeccion Fondo De Ahorro</Text>
@@ -121,7 +119,7 @@ export default function BankingLoginScreen() {
 
           {/* Ilustración Financiera */}
           <View style={styles.heroContainer}>
-            <View style={styles.heroGrid}> 
+            <View style={styles.heroGrid}>
               <View style={styles.heroItem}>
                 <MaterialIcons name="trending-up" size={24} color="rgba(255,255,255,0.3)" />
               </View>
@@ -151,7 +149,7 @@ export default function BankingLoginScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email:</Text>
               <View style={styles.inputWrapper}>
-                <MaterialIcons name="person" size={20} color="#60a5fa" style={styles.inputIcon} />
+                <MaterialIcons name="person" size={20} color="#ef4444" style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, focusedInput === "email" && styles.inputFocused]}
                   placeholder="Ingrese su email"
@@ -170,7 +168,7 @@ export default function BankingLoginScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Contraseña:</Text>
               <View style={styles.inputWrapper}>
-                <MaterialIcons name="lock" size={20} color="#60a5fa" style={styles.inputIcon} />
+                <MaterialIcons name="lock" size={20} color="#ef4444" style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, styles.passwordInput, focusedInput === "password" && styles.inputFocused]}
                   placeholder="Ingrese su contraseña"
@@ -182,7 +180,7 @@ export default function BankingLoginScreen() {
                   onBlur={() => setFocusedInput(null)}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
-                  <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color="#60a5fa" />
+                  <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color="#fff" />
                 </TouchableOpacity>
               </View>
               <TouchableOpacity style={styles.forgotPassword}>
@@ -199,7 +197,7 @@ export default function BankingLoginScreen() {
                 </View>
               ) : (
                 <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                  <LinearGradient colors={["#3b82f6", "#2563eb"]} style={styles.buttonGradient}>
+                  <LinearGradient colors={["#ef4444", "#dc2626"]} style={styles.buttonGradient}>
                     <FontAwesome6 name="right-to-bracket" size={18} color="white" />
                     <Text style={styles.buttonText}>ACCEDER AL SISTEMA</Text>
                   </LinearGradient>
@@ -219,6 +217,7 @@ export default function BankingLoginScreen() {
           </Link>
         </Text>
         <Text style={styles.footerCopyright}>Sistemas y Redes © {year}</Text>
+        <Text style={styles.footerCopyright}>{`https://${backendDomain}`}</Text>
       </View>
     </LinearGradient>
   );
@@ -341,13 +340,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   heroItem: {
-    // width: "30%",
-    // aspectRatio: 1,
-    // backgroundColor: "rgba(255,255,255,0.1)",
-    // borderRadius: 12,
-    // justifyContent: "center",
-    // alignItems: "center",
-    // marginBottom: 12,
   },
 
   // Formulario
@@ -387,6 +379,7 @@ const styles = StyleSheet.create({
   inputIcon: {
     marginLeft: 16,
     marginRight: 8,
+    color: "#fff",
   },
   input: {
     flex: 1,
@@ -400,7 +393,7 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     backgroundColor: "rgba(255,255,255,0.15)",
-    borderColor: "#60a5fa",
+    borderColor: "#ef4444",
   },
   eyeButton: {
     position: "absolute",
@@ -415,7 +408,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   forgotPasswordText: {
-    color: "#60a5fa",
+    color: "#fca5a5",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -452,7 +445,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(59,130,246,0.8)",
+    backgroundColor: "rgba(220,38,38,0.8)",
     paddingVertical: 16,
     borderRadius: 12,
   },
@@ -504,7 +497,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   footerLink: {
-    color: "#60a5fa",
+    color: "#fca5a5",
     fontWeight: "600",
   },
   footerCopyright: {

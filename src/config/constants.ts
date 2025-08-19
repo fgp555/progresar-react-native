@@ -2,7 +2,7 @@ import Constants from "expo-constants";
 
 export const androidVersion = Constants.expoConfig?.version;
 
-export const backendDomain = process.env.EXPO_PUBLIC_API_DOMAIN || "fgp.one"; // back.fgp.one
+export const backendDomain = process.env.EXPO_PUBLIC_API_DOMAIN || "fondoprogresar.appsystered.com"; // back.fgp.one
 export const baseURL = process.env.EXPO_PUBLIC_API_BASE_URL || `https://${backendDomain}`;
 export const IS_DEVELOPMENT = process.env.EXPO_PUBLIC_IS_DEVELOPMENT;
 

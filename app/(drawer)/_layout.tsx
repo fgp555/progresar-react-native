@@ -18,19 +18,19 @@ export default function BankingDrawerLayout() {
         drawerPosition: "left",
         headerLeft: () => (
           <TouchableOpacity onPress={() => navigation.toggleDrawer()} style={styles.headerButton}>
-            <MaterialIcons name="menu" size={26} color="#1e40af" />
+            <MaterialIcons name="menu" size={26} color="#dc2626" />
           </TouchableOpacity>
         ),
         headerTitleAlign: "center",
         headerStyle: {
           backgroundColor: "white",
-          shadowColor: "#1e40af",
+          shadowColor: "#dc2626",
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
           shadowRadius: 4,
           elevation: 4,
         },
-        headerTintColor: "#1e40af",
+        headerTintColor: "#dc2626",
         headerTitleStyle: {
           fontWeight: "600",
           fontSize: 18,
@@ -86,8 +86,8 @@ const CustomBankingDrawer = (props: DrawerContentComponentProps) => {
   const menuItems = getMenuItems();
 
   return (
-    <LinearGradient colors={["#1e3a8a", "#1e40af", "#3730a3"]} style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1e3a8a" />
+    <LinearGradient colors={["#dc2626", "#b91c1c", "#991b1b"]} style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#dc2626" />
 
       <DrawerContentScrollView
         {...props}
@@ -98,7 +98,7 @@ const CustomBankingDrawer = (props: DrawerContentComponentProps) => {
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <View style={styles.logoWrapper}>
-              <MaterialIcons name="account-balance" size={40} color="#3b82f6" />
+              <MaterialIcons name="account-balance" size={40} color="#dc2626" />
             </View>
             <Text style={styles.bankTitle}>PROGRESAR</Text>
             <Text style={styles.bankSubtitle}>Proyeccion Fondo De Ahorro</Text>
@@ -108,7 +108,7 @@ const CustomBankingDrawer = (props: DrawerContentComponentProps) => {
           {userStore && (
             <BlurView intensity={20} tint="light" style={styles.userCard}>
               <View style={styles.userAvatar}>
-                <MaterialIcons name="person" size={24} color="#1e40af" />
+                <MaterialIcons name="person" size={24} color="#dc2626" />
               </View>
               <View style={styles.userInfo}>
                 <Text style={styles.userName}>{userStore.user.name || "Usuario"}</Text>
@@ -143,7 +143,7 @@ const CustomBankingDrawer = (props: DrawerContentComponentProps) => {
                   <MaterialIcons
                     name={item.icon}
                     size={20}
-                    color={pathname === item.route ? "#3b82f6" : "rgba(255,255,255,0.8)"}
+                    color={pathname === item.route ? "#dc2626" : "rgba(255,255,255,0.8)"}
                   />
                   <Text style={[styles.menuItemText, pathname === item.route && styles.activeMenuItemText]}>
                     {item.title}
@@ -152,7 +152,7 @@ const CustomBankingDrawer = (props: DrawerContentComponentProps) => {
                 <MaterialIcons
                   name="chevron-right"
                   size={16}
-                  color={pathname === item.route ? "#3b82f6" : "rgba(255,255,255,0.6)"}
+                  color={pathname === item.route ? "#dc2626" : "rgba(255,255,255,0.6)"}
                 />
               </BlurView>
             </TouchableOpacity>
@@ -189,7 +189,7 @@ const CustomBankingDrawer = (props: DrawerContentComponentProps) => {
       <View style={styles.footer}>
         {/* Logout Button */}
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <LinearGradient colors={["#dc2626", "#b91c1c"]} style={styles.logoutGradient}>
+          <LinearGradient colors={["#ef4444", "#dc2626"]} style={styles.logoutGradient}>
             <MaterialIcons name="logout" size={20} color="white" />
             <Text style={styles.logoutText}>Cerrar Sesión</Text>
           </LinearGradient>
@@ -207,7 +207,7 @@ const CustomBankingDrawer = (props: DrawerContentComponentProps) => {
 
         {/* Security Badge */}
         <View style={styles.securityFooter}>
-          <MaterialIcons name="security" size={14} color="#22c55e" />
+          <MaterialIcons name="security" size={14} color="#fca5a5" />
           <Text style={styles.securityText}>Conexión Segura</Text>
         </View>
       </View>
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   activeMenuItemText: {
-    color: "#3b82f6",
+    color: "#dc2626",
     fontWeight: "600",
   },
 
@@ -408,16 +408,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(34,197,94,0.1)",
+    backgroundColor: "rgba(252,165,165,0.1)",
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(34,197,94,0.2)",
+    borderColor: "rgba(252,165,165,0.2)",
   },
   securityText: {
     fontSize: 11,
-    color: "#22c55e",
+    color: "#fca5a5",
     fontWeight: "600",
     marginLeft: 6,
   },
