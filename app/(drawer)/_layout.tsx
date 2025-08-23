@@ -52,25 +52,25 @@ const CustomBankingDrawer = (props: DrawerContentComponentProps) => {
 
   const getMenuItems = () => {
     const baseItems = [
+      // {
+      //   title: "Panel Principal",
+      //   icon: "dashboard" as const,
+      //   route: "/operations",
+      // },
       {
-        title: "Panel Principal",
-        icon: "dashboard" as const,
-        route: "/operations",
-      },
-      {
-        title: "Mi Perfil",
+        title: "Mis Cuentas",
         icon: "account-circle" as const,
-        route: "/profile",
+        route: "/me",
       },
     ];
 
     const adminItems = isAdmin
       ? [
-          {
-            title: "Gestión de Usuarios",
-            icon: "group" as const,
-            route: "/user/list",
-          },
+          // {
+          //   title: "Gestión de Usuarios",
+          //   icon: "group" as const,
+          //   route: "/user/list",
+          // },
         ]
       : [];
 

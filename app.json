@@ -2,7 +2,7 @@
   "expo": {
     "name": "progresar-react-native",
     "slug": "progresar-react-native",
-    "version": "25.8.19",
+    "version": "25.8.24",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "progresarreactnative",

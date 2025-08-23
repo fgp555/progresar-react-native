@@ -1,47 +1,21 @@
-import { View, Text, Image, ActivityIndicator, StyleSheet, FlatList } from "react-native";
-import React, { useEffect, useState } from "react";
-import { apiUserService } from "@/src/services/apiUser";
-import { useLocalSearchParams } from "expo-router";
-import UserDetailsComp from "@/src/components/UserDetailsComp";
+// [userId].tsx
 
-export default function UserDetailsScreen() {
-  const [userDetail, setUserDetail] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+import { Stack, useLocalSearchParams } from "expo-router";
+import { StyleSheet, Text, View } from "react-native";
+
+export default function UserIdParams() {
   const { userId } = useLocalSearchParams();
+  // const params = useLocalSearchParams<{ userId: string }>();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userData = await apiUserService.getUserById(userId);
-        setUserDetail(userData);
-      } catch (error) {
-        console.error("❌ Error obteniendo usuario:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  return (
+    <View style={styles.container}>
+       {/* <Stack.Screen name="/user/details/[userId]" options={{ title: "UserId " + userId }} /> */}
+       <Stack.Screen options={{ title: `Usuario ${userId}` }} />
 
-    fetchUser();
-  }, [userId]);
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Cargando usuario...</Text>
-      </View>
-    );
-  }
-
-  if (!userDetail) {
-    return (
-      <View style={styles.container}>
-        <Text>No se encontró el usuario.</Text>
-      </View>
-    );
-  }
-
-  return <UserDetailsComp userDetail={userDetail} />;
+       <Text> UserId {userId}</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -49,50 +23,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 20,
-  },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 10,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  email: {
-    fontSize: 16,
-    color: "gray",
-  },
-  phone: {
-    fontSize: 16,
-    marginTop: 5,
-  },
-  role: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 5,
-  },
-  operator: {
-    fontSize: 16,
-    marginTop: 5,
-  },
-  date: {
-    fontSize: 14,
-    marginTop: 5,
-    color: "gray",
-  },
-  deviceTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 10,
-  },
-  deviceItem: {
-    backgroundColor: "#f3f3f3",
-    padding: 10,
-    borderRadius: 8,
-    marginVertical: 5,
-    width: "100%",
   },
 });

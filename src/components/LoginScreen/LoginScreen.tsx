@@ -23,8 +23,8 @@ import { backendDomain, baseURL } from "@/src/config/constants";
 const { width, height } = Dimensions.get("window");
 
 export default function BankingLoginScreen() {
-  const [email, setEmail] = useState("admin@gmail.com");
-  const [password, setPassword] = useState("admin@gmail.com");
+  const [email, setEmail] = useState("soporte@systered.com");
+  const [password, setPassword] = useState("Jhlpjdln7308/*");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
@@ -32,7 +32,7 @@ export default function BankingLoginScreen() {
 
   const { token, setUser, getUserFromStorage, refreshToken } = useAuthStore();
   const router = useRouter();
-  const pathRedirect = "./operations";
+  const pathRedirect = "./me"; // Redirigir a detalles del usuario con ID 1
 
   useEffect(() => {
     const initAuth = async () => {
@@ -206,19 +206,18 @@ export default function BankingLoginScreen() {
             </View>
           </BlurView>
         </View>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Desarrollado por{" "}
+            <Link href="https://systered.com" style={styles.footerLink}>
+              Systered.com
+            </Link>
+          </Text>
+          <Text style={styles.footerCopyright}>Sistemas y Redes © {year}</Text>
+          <Text style={styles.footerCopyright}>{`https://${backendDomain}`}</Text>
+        </View>
       </ScrollView>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Desarrollado por{" "}
-          <Link href="https://systered.com" style={styles.footerLink}>
-            Systered.com
-          </Link>
-        </Text>
-        <Text style={styles.footerCopyright}>Sistemas y Redes © {year}</Text>
-        <Text style={styles.footerCopyright}>{`https://${backendDomain}`}</Text>
-      </View>
     </LinearGradient>
   );
 }
@@ -339,8 +338,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-  heroItem: {
-  },
+  heroItem: {},
 
   // Formulario
   formContainer: {
