@@ -17,8 +17,17 @@ import { useLoans, type Loan } from "@/src/hooks/useLoans";
 
 const LoansScreen: React.FC = () => {
   const { accountId } = useLocalSearchParams<{ accountId: string }>();
-  const { loans, loading, error, fetchAccountLoans, getNextInstallment, getRemainingBalance, formatCurrency } =
-    useLoans();
+  const {
+    loans,
+    loading,
+    error,
+    fetchAccountLoans,
+    getNextInstallment,
+    getRemainingBalance,
+    getPendingInstallmentsCount,
+    payInstallment,
+    formatCurrency,
+  } = useLoans();
   const [refreshing, setRefreshing] = useState(false);
 
   // Validar accountId
@@ -47,6 +56,21 @@ const LoansScreen: React.FC = () => {
     setRefreshing(true);
     await fetchAccountLoans(accountId);
     setRefreshing(false);
+  };
+
+  // Ordenar préstamos por fecha de creación (más recientes primero)
+  const sortedLoans = [...loans].sort((a, b) => {
+    return new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime();
+  });
+
+  // Formatear fecha
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("es-PE", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   // Formatear moneda usando la utilidad del hook
@@ -85,11 +109,19 @@ const LoansScreen: React.FC = () => {
     return ((loan.cuotasPagadas || 0) / loan.numeroCuotas) * 100;
   };
 
+  // Navegar a calculadora de préstamos
+  const handleCalculateLoan = () => {
+    router.push(`/loans/${accountId}/calculate`);
+  };
+
   const renderLoanCard = ({ item: loan }: { item: Loan }) => (
     <TouchableOpacity style={styles.loanCard} activeOpacity={0.7}>
-      {/* Header con ID y estado */}
+      {/* Header con ID, estado y fecha */}
       <View style={styles.loanHeader}>
-        <Text style={styles.loanId}>#{loan.id.slice(-8)}</Text>
+        <View>
+          <Text style={styles.loanId}>#{loan.id.slice(-8)}</Text>
+          <Text style={styles.loanDate}>📅 {formatDate(loan.fechaCreacion)}</Text>
+        </View>
         <View style={[styles.statusBadge, { backgroundColor: getLoanStatusColor(loan.estado) }]}>
           <Text style={styles.statusText}>{loan.estado.toUpperCase()}</Text>
         </View>
@@ -140,10 +172,30 @@ const LoansScreen: React.FC = () => {
           <Text style={styles.detailLabel}>Intereses:</Text>
           <Text style={styles.detailValue}>{formatAmount(loan.interesTotal)}</Text>
         </View>
+        {loan.fechaVencimiento && (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Vencimiento:</Text>
+            <Text style={styles.detailValue}>{formatDate(loan.fechaVencimiento)}</Text>
+          </View>
+        )}
+        {loan.fechaCompletado && (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Completado:</Text>
+            <Text style={styles.detailValue}>{formatDate(loan.fechaCompletado)}</Text>
+          </View>
+        )}
       </View>
 
+      {/* Descripción si existe */}
+      {loan.descripcion && (
+        <View style={styles.descriptionSection}>
+          <Text style={styles.descriptionLabel}>Descripción:</Text>
+          <Text style={styles.descriptionText}>{loan.descripcion}</Text>
+        </View>
+      )}
+
       {/* Botones de acción */}
-      {/* {loan.estado === "activo" && (
+      {loan.estado === "activo" && (
         <View style={styles.actionButtons}>
           <TouchableOpacity style={styles.payButton} onPress={() => handlePayInstallment(loan.id)}>
             <Text style={styles.payButtonText}>💰 Pagar Cuota</Text>
@@ -152,7 +204,7 @@ const LoansScreen: React.FC = () => {
             <Text style={styles.detailsButtonText}>📋 Detalles</Text>
           </TouchableOpacity>
         </View>
-      )} */}
+      )}
     </TouchableOpacity>
   );
 
@@ -160,26 +212,36 @@ const LoansScreen: React.FC = () => {
     const loan = loans.find((l) => l.id === loanId);
     if (!loan) return;
 
-    const nextInstallment = getNextInstallment(loan);
-    if (!nextInstallment) {
+    const pendingCount = getPendingInstallmentsCount(loan);
+    if (pendingCount === 0) {
       Alert.alert("Información", "No hay cuotas pendientes para este préstamo");
       return;
     }
 
-    Alert.alert(
-      "Pagar Cuota",
-      `¿Desea pagar la cuota #${nextInstallment.numeroCuota} por ${formatAmount(nextInstallment.monto)}?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Pagar",
-          onPress: () => {
-            // Aquí implementarías la lógica de pago
-            Alert.alert("En desarrollo", "Función de pago en desarrollo");
-          },
-        },
-      ]
-    );
+    const nextInstallment = getNextInstallment(loan);
+    const options: any = [];
+
+    // Opción de pagar una cuota
+    if (nextInstallment) {
+      options.push({
+        text: `1 cuota (${formatAmount(nextInstallment.monto)})`,
+        onPress: () => payInstallment(loanId, { numeroCuotas: 1 }),
+      });
+    }
+
+    // Opción de pagar múltiples cuotas si hay más de una pendiente
+    if (pendingCount > 1) {
+      const multipleAmount = parseFloat(loan.montoCuota) * Math.min(pendingCount, 3);
+      const cuotasText = Math.min(pendingCount, 3);
+      options.push({
+        text: `${cuotasText} cuotas (${formatAmount(multipleAmount)})`,
+        onPress: () => payInstallment(loanId, { numeroCuotas: cuotasText }),
+      });
+    }
+
+    options.push({ text: "Cancelar", style: "cancel" });
+
+    Alert.alert("Pagar Cuotas", "Seleccione cuántas cuotas desea pagar:", options);
   };
 
   const handleViewDetails = (loanId: string) => {
@@ -191,20 +253,39 @@ const LoansScreen: React.FC = () => {
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyIcon}>📊</Text>
       <Text style={styles.emptyTitle}>No tienes préstamos</Text>
-      <Text style={styles.emptyDescription}>Solicita tu primer préstamo para comenzar</Text>
+      <Text style={styles.emptyDescription}>Usa la calculadora para simular un préstamo y luego solicítalo</Text>
+      <TouchableOpacity style={styles.calculateButton} onPress={handleCalculateLoan}>
+        <Text style={styles.calculateButtonText}>🧮 Calcular Préstamo</Text>
+      </TouchableOpacity>
     </View>
   );
 
   const renderHeader = () => (
     <View style={styles.headerSection}>
-      <Text style={styles.headerTitle}>Préstamos Activos</Text>
-      <Text style={styles.headerSubtitle}>
-        {loans.length} préstamo{loans.length !== 1 ? "s" : ""} en el sistema
-      </Text>
+      <View style={styles.headerTitleRow}>
+        <View>
+          <Text style={styles.headerTitle}>Préstamos</Text>
+          <Text style={styles.headerSubtitle}>
+            {sortedLoans.length} préstamo{sortedLoans.length !== 1 ? "s" : ""} registrado
+            {sortedLoans.length !== 1 ? "s" : ""}
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.calculateButtonHeader} onPress={handleCalculateLoan}>
+          <Text style={styles.calculateButtonHeaderText}>🧮</Text>
+        </TouchableOpacity>
+      </View>
+
       {error && (
         <View style={styles.errorBanner}>
           <Text style={styles.errorBannerText}>{error}</Text>
         </View>
+      )}
+
+      {/* Botón principal de calcular si hay préstamos */}
+      {sortedLoans.length > 0 && (
+        <TouchableOpacity style={styles.calculateButtonFull} onPress={handleCalculateLoan}>
+          <Text style={styles.calculateButtonFullText}>🧮 Calcular Nuevo Préstamo</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -234,7 +315,7 @@ const LoansScreen: React.FC = () => {
 
       {/* Lista de préstamos */}
       <FlatList
-        data={loans}
+        data={sortedLoans}
         renderItem={renderLoanCard}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
@@ -242,7 +323,7 @@ const LoansScreen: React.FC = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#dc2626"]} tintColor="#dc2626" />
         }
-        contentContainerStyle={[styles.listContainer, loans.length === 0 && styles.emptyListContainer]}
+        contentContainerStyle={[styles.listContainer, sortedLoans.length === 0 && styles.emptyListContainer]}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
@@ -315,17 +396,55 @@ const styles = StyleSheet.create({
   headerSection: {
     marginBottom: 20,
   },
+  headerTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#dc2626",
-    textAlign: "center",
-    marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
     color: "#6b7280",
-    textAlign: "center",
+    marginTop: 2,
+  },
+  calculateButtonHeader: {
+    backgroundColor: "#dc2626",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#dc2626",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  calculateButtonHeaderText: {
+    fontSize: 20,
+  },
+  calculateButtonFull: {
+    backgroundColor: "#dc2626",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 8,
+    shadowColor: "#dc2626",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  calculateButtonFullText: {
+    color: "#ffffff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   errorBanner: {
     backgroundColor: "#fef2f2",
@@ -356,7 +475,7 @@ const styles = StyleSheet.create({
   loanHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
     marginBottom: 16,
   },
   loanId: {
@@ -364,6 +483,11 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     color: "#6b7280",
     fontWeight: "600",
+  },
+  loanDate: {
+    fontSize: 12,
+    color: "#9ca3af",
+    marginTop: 2,
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -445,6 +569,25 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1f2937",
   },
+  descriptionSection: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: "#f9fafb",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#dc2626",
+  },
+  descriptionLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginBottom: 4,
+    fontWeight: "600",
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: "#374151",
+    lineHeight: 20,
+  },
   actionButtons: {
     flexDirection: "row",
     gap: 12,
@@ -495,18 +638,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 24,
     lineHeight: 20,
+    paddingHorizontal: 40,
   },
-  requestButton: {
+  calculateButton: {
     backgroundColor: "#dc2626",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    shadowColor: "#dc2626",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  requestButtonText: {
+  calculateButtonText: {
     color: "#ffffff",
-    fontWeight: "600",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });

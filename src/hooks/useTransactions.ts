@@ -1,48 +1,85 @@
 // src/hooks/useTransactions.ts
 import { useState, useCallback } from "react";
-import axiosInstance from "@/src/config/axiosInstance";
 import { Alert } from "react-native";
+import axiosInstance from "@/src/config/axiosInstance";
 
-interface Transaction {
+export interface Transaction {
   id: string;
-  tipo: "deposito" | "retiro" | "transferencia";
-  monto: number;
-  descripcion: string;
+  cuentaId: string;
+  cuentaDestinoId?: string;
+  cuentaOrigenId?: string;
+  prestamoId?: string;
+  cuotaId?: string;
+  tipo:
+    | "deposito"
+    | "retiro"
+    | "transferencia_entrada"
+    | "transferencia_salida"
+    | "prestamo_desembolso"
+    | "prestamo_pago_cuota"
+    | "prestamo_pago_multiple";
+  monto: string;
+  descripcion?: string;
   fecha: string;
-  estado: "completada" | "pendiente" | "fallida";
-  cuentaOrigen?: string;
-  cuentaDestino?: string;
+  saldoAnterior: string;
+  saldoNuevo: string;
 }
 
-interface TransactionData {
+export interface DepositDto {
   monto: number;
-  descripcion: string;
+  descripcion?: string;
 }
 
-interface TransferData {
+export interface WithdrawDto {
+  monto: number;
+  descripcion?: string;
+}
+
+export interface TransferDto {
   cuentaOrigenId: string;
   cuentaDestinoNumero: string;
   monto: number;
-  descripcion: string;
+  descripcion?: string;
 }
 
-interface UseTransactionsReturn {
-  transactions: Transaction[];
-  loading: boolean;
-  error: string | null;
-  fetchAccountTransactions: (accountId: string, page?: number, limit?: number) => Promise<void>;
-  deposit: (accountId: string, data: TransactionData) => Promise<void>;
-  withdraw: (accountId: string, data: TransactionData) => Promise<void>;
-  transfer: (data: TransferData) => Promise<void>;
-  refreshTransactions: (accountId: string) => Promise<void>;
+export interface PaginationResponse {
+  current: number;
+  total: number;
+  count: number;
+  totalRecords: number;
 }
 
-export const useTransactions = (): UseTransactionsReturn => {
+export const useTransactions = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<PaginationResponse | null>(null);
 
-  // Obtener transacciones de una cuenta
+  const fetchAllTransactions = useCallback(async (page: number = 1, limit: number = 10) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axiosInstance.get(`/api/progresar/transacciones/findAll?page=${page}&limit=${limit}`);
+      const { data, pagination: paginationData } = response.data;
+
+      if (page === 1) {
+        setTransactions(data || []);
+      } else {
+        setTransactions((prev) => [...prev, ...(data || [])]);
+      }
+
+      setPagination(paginationData);
+      return { data: data || [], pagination: paginationData };
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Error al obtener transacciones";
+      setError(errorMessage);
+      console.error("Error fetching all transactions:", err);
+      Alert.alert("Error", errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const fetchAccountTransactions = useCallback(async (accountId: string, page: number = 1, limit: number = 10) => {
     if (!accountId) {
       setError("ID de cuenta requerido");
@@ -51,55 +88,51 @@ export const useTransactions = (): UseTransactionsReturn => {
 
     setLoading(true);
     setError(null);
-
     try {
-      const response = await axiosInstance.get(`/api/progresar/transacciones/account/${accountId}`, {
-        params: { page, limit },
-      });
-
-      const { data } = response.data;
-      // setTransactions(Array.isArray(data) ? data : []);
-      setTransactions(
-        (Array.isArray(data) ? data : []).map((t) => ({
-          ...t,
-          monto: Number(t.monto), // convertir a número
-          estado: "completada", // default porque backend no lo manda
-        }))
+      const response = await axiosInstance.get(
+        `/api/progresar/transacciones/account/${accountId}?page=${page}&limit=${limit}`
       );
+      const { data, pagination: paginationData } = response.data;
+
+      if (page === 1) {
+        setTransactions(data || []);
+      } else {
+        setTransactions((prev) => [...prev, ...(data || [])]);
+      }
+
+      setPagination(paginationData);
+      return { data: data || [], pagination: paginationData };
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "Error al obtener transacciones";
+      const errorMessage = err.response?.data?.message || "Error al obtener transacciones de la cuenta";
       setError(errorMessage);
+      console.error("Error fetching account transactions:", err);
       Alert.alert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Realizar depósito
-  const deposit = useCallback(
-    async (accountId: string, data: TransactionData) => {
-      if (!accountId || !data.monto || data.monto <= 0) {
+  const makeDeposit = useCallback(
+    async (accountId: string, depositData: DepositDto) => {
+      if (!accountId || !depositData.monto || depositData.monto <= 0) {
         throw new Error("Datos de depósito inválidos");
       }
 
       setLoading(true);
       setError(null);
-
       try {
-        const response = await axiosInstance.post(`/api/progresar/transacciones/deposito`, {
-          cuentaId: accountId,
-          monto: data.monto,
-          descripcion: data.descripcion,
-        });
+        const response = await axiosInstance.post(`/api/progresar/transacciones/deposit/${accountId}`, depositData);
+        const { data } = response.data;
 
-        // Actualizar la lista de transacciones
-        await fetchAccountTransactions(accountId);
+        // Refrescar transacciones después del depósito
+        await fetchAccountTransactions(accountId, 1, 10);
 
-        return response.data;
+        Alert.alert("Éxito", "Depósito realizado correctamente");
+        return data;
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || "Error al realizar depósito";
         setError(errorMessage);
-        console.error("Error en depósito:", err);
+        console.error("Error making deposit:", err);
         throw new Error(errorMessage);
       } finally {
         setLoading(false);
@@ -108,31 +141,27 @@ export const useTransactions = (): UseTransactionsReturn => {
     [fetchAccountTransactions]
   );
 
-  // Realizar retiro
-  const withdraw = useCallback(
-    async (accountId: string, data: TransactionData) => {
-      if (!accountId || !data.monto || data.monto <= 0) {
+  const makeWithdrawal = useCallback(
+    async (accountId: string, withdrawalData: WithdrawDto) => {
+      if (!accountId || !withdrawalData.monto || withdrawalData.monto <= 0) {
         throw new Error("Datos de retiro inválidos");
       }
 
       setLoading(true);
       setError(null);
-
       try {
-        const response = await axiosInstance.post(`/api/progresar/transacciones/retiro`, {
-          cuentaId: accountId,
-          monto: data.monto,
-          descripcion: data.descripcion,
-        });
+        const response = await axiosInstance.post(`/api/progresar/transacciones/withdraw/${accountId}`, withdrawalData);
+        const { data } = response.data;
 
-        // Actualizar la lista de transacciones
-        await fetchAccountTransactions(accountId);
+        // Refrescar transacciones después del retiro
+        await fetchAccountTransactions(accountId, 1, 10);
 
-        return response.data;
+        Alert.alert("Éxito", "Retiro realizado correctamente");
+        return data;
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || "Error al realizar retiro";
         setError(errorMessage);
-        console.error("Error en retiro:", err);
+        console.error("Error making withdrawal:", err);
         throw new Error(errorMessage);
       } finally {
         setLoading(false);
@@ -141,32 +170,32 @@ export const useTransactions = (): UseTransactionsReturn => {
     [fetchAccountTransactions]
   );
 
-  // Realizar transferencia
-  const transfer = useCallback(
-    async (data: TransferData) => {
-      if (!data.cuentaOrigenId || !data.cuentaDestinoNumero || !data.monto || data.monto <= 0) {
+  const makeTransfer = useCallback(
+    async (transferData: TransferDto) => {
+      if (
+        !transferData.cuentaOrigenId ||
+        !transferData.cuentaDestinoNumero ||
+        !transferData.monto ||
+        transferData.monto <= 0
+      ) {
         throw new Error("Datos de transferencia inválidos");
       }
 
       setLoading(true);
       setError(null);
-
       try {
-        const response = await axiosInstance.post(`/api/progresar/transacciones/transferencia`, {
-          cuentaOrigenId: data.cuentaOrigenId,
-          cuentaDestinoNumero: data.cuentaDestinoNumero,
-          monto: data.monto,
-          descripcion: data.descripcion,
-        });
+        const response = await axiosInstance.post(`/api/progresar/transacciones/transfer`, transferData);
+        const { data } = response.data;
 
-        // Actualizar la lista de transacciones de la cuenta origen
-        await fetchAccountTransactions(data.cuentaOrigenId);
+        // Refrescar transacciones de la cuenta origen
+        await fetchAccountTransactions(transferData.cuentaOrigenId, 1, 10);
 
-        return response.data;
+        Alert.alert("Éxito", "Transferencia realizada correctamente");
+        return data;
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || "Error al realizar transferencia";
         setError(errorMessage);
-        console.error("Error en transferencia:", err);
+        console.error("Error making transfer:", err);
         throw new Error(errorMessage);
       } finally {
         setLoading(false);
@@ -175,22 +204,95 @@ export const useTransactions = (): UseTransactionsReturn => {
     [fetchAccountTransactions]
   );
 
-  // Refrescar transacciones
-  const refreshTransactions = useCallback(
-    async (accountId: string) => {
-      await fetchAccountTransactions(accountId);
-    },
-    [fetchAccountTransactions]
-  );
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const clearTransactions = useCallback(() => {
+    setTransactions([]);
+    setPagination(null);
+  }, []);
+
+  // Utilidades para trabajar con transacciones
+  const getTransactionTypeLabel = useCallback((type: string): string => {
+    const labels: Record<string, string> = {
+      deposito: "Depósito",
+      retiro: "Retiro",
+      transferencia_entrada: "Transferencia Recibida",
+      transferencia_salida: "Transferencia Enviada",
+      prestamo_desembolso: "Préstamo Desembolsado",
+      prestamo_pago_cuota: "Pago de Cuota",
+      prestamo_pago_multiple: "Pago Múltiple",
+    };
+    return labels[type] || type;
+  }, []);
+
+  const getTransactionIcon = useCallback((type: string): string => {
+    const icons: Record<string, string> = {
+      deposito: "💰",
+      retiro: "🏧",
+      transferencia_entrada: "📥",
+      transferencia_salida: "📤",
+      prestamo_desembolso: "🏦",
+      prestamo_pago_cuota: "💳",
+      prestamo_pago_multiple: "💳",
+    };
+    return icons[type] || "💸";
+  }, []);
+
+  const getTransactionColor = useCallback((type: string): string => {
+    const colors: Record<string, string> = {
+      deposito: "#22c55e",
+      retiro: "#ef4444",
+      transferencia_entrada: "#22c55e",
+      transferencia_salida: "#ef4444",
+      prestamo_desembolso: "#3b82f6",
+      prestamo_pago_cuota: "#f59e0b",
+      prestamo_pago_multiple: "#f59e0b",
+    };
+    return colors[type] || "#6b7280";
+  }, []);
+
+  const formatCurrency = useCallback((amount: string | number): string => {
+    const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+    try {
+      return new Intl.NumberFormat("es-PE", {
+        style: "currency",
+        currency: "PEN",
+      }).format(numAmount);
+    } catch (error) {
+      return `S/ ${numAmount.toFixed(2)}`;
+    }
+  }, []);
+
+  const formatDate = useCallback((dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("es-PE", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }, []);
 
   return {
     transactions,
     loading,
     error,
+    pagination,
+    fetchAllTransactions,
     fetchAccountTransactions,
-    deposit,
-    withdraw,
-    transfer,
-    refreshTransactions,
+    makeDeposit,
+    makeWithdrawal,
+    makeTransfer,
+    clearError,
+    clearTransactions,
+    // Utilidades
+    getTransactionTypeLabel,
+    getTransactionIcon,
+    getTransactionColor,
+    formatCurrency,
+    formatDate,
   };
 };

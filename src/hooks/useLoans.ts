@@ -33,35 +33,28 @@ export interface Loan {
 }
 
 export interface CreateLoanDto {
-  montoPrincipal: number;
+  monto: number; // Cambiado de montoPrincipal a monto
   numeroCuotas: number;
-  tasaInteres: number;
   descripcion?: string;
 }
 
 export interface PayInstallmentDto {
-  monto: number;
-  descripcion?: string;
+  numeroCuotas: number; // Cambiado de monto a numeroCuotas
 }
 
 export interface CalculateLoanDto {
-  montoPrincipal: number;
+  monto: number; // Cambiado de montoPrincipal a monto
   numeroCuotas: number;
-  tasaInteres: number;
+  // Removido tasaInteres ya que es fijo en el backend
 }
 
 export interface LoanCalculation {
+  montoPrincipal: number;
+  numeroCuotas: number;
   montoCuota: number;
   montoTotal: number;
   interesTotal: number;
-  cronogramaPagos: Array<{
-    numeroCuota: number;
-    fechaVencimiento: string;
-    montoCuota: number;
-    montoCapital: number;
-    montoInteres: number;
-    saldoPendiente: number;
-  }>;
+  tasaInteres: string;
 }
 
 export const useLoans = () => {
@@ -97,7 +90,7 @@ export const useLoans = () => {
     setLoading(true);
     setError(null);
     try {
-      // Usar la URL exacta de tu backend
+      // URL corregida según el backend
       const response = await axiosInstance.get(`/api/progresar/prestamos/account/${accountId}`);
       const { data } = response.data;
       setLoans(data || []);
@@ -113,14 +106,23 @@ export const useLoans = () => {
   }, []);
 
   const calculateLoan = useCallback(async (loanData: CalculateLoanDto) => {
-    if (!loanData.montoPrincipal || !loanData.numeroCuotas || !loanData.tasaInteres) {
+    if (!loanData.monto || !loanData.numeroCuotas) {
       throw new Error("Datos de préstamo incompletos");
+    }
+
+    if (loanData.monto <= 0) {
+      throw new Error("El monto debe ser mayor a 0");
+    }
+
+    if (loanData.numeroCuotas < 1 || loanData.numeroCuotas > 6) {
+      throw new Error("El número de cuotas debe ser entre 1 y 6");
     }
 
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosInstance.post("/api/progresar/prestamos/calcular", loanData);
+      // URL corregida según el backend
+      const response = await axiosInstance.post("/api/progresar/prestamos/calculate", loanData);
       const { data } = response.data;
       setCalculation(data);
       return data;
@@ -136,14 +138,23 @@ export const useLoans = () => {
 
   const requestLoan = useCallback(
     async (accountId: string, loanData: CreateLoanDto) => {
-      if (!accountId || !loanData.montoPrincipal || !loanData.numeroCuotas) {
+      if (!accountId || !loanData.monto || !loanData.numeroCuotas) {
         throw new Error("Datos de solicitud incompletos");
+      }
+
+      if (loanData.monto <= 0) {
+        throw new Error("El monto debe ser mayor a 0");
+      }
+
+      if (loanData.numeroCuotas < 1 || loanData.numeroCuotas > 6) {
+        throw new Error("El número de cuotas debe ser entre 1 y 6");
       }
 
       setLoading(true);
       setError(null);
       try {
-        const response = await axiosInstance.post(`/api/progresar/prestamos/solicitar/${accountId}`, loanData);
+        // URL corregida según el backend
+        const response = await axiosInstance.post(`/api/progresar/prestamos/account/${accountId}`, loanData);
         const { data } = response.data;
 
         // Refrescar préstamos después de solicitar
@@ -164,14 +175,19 @@ export const useLoans = () => {
   );
 
   const payInstallment = useCallback(async (loanId: string, paymentData: PayInstallmentDto) => {
-    if (!loanId || !paymentData.monto || paymentData.monto <= 0) {
+    if (!loanId || !paymentData.numeroCuotas || paymentData.numeroCuotas <= 0) {
       throw new Error("Datos de pago inválidos");
+    }
+
+    if (paymentData.numeroCuotas < 1 || paymentData.numeroCuotas > 6) {
+      throw new Error("El número de cuotas debe ser entre 1 y 6");
     }
 
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosInstance.post(`/api/progresar/prestamos/${loanId}/pagar-cuota`, paymentData);
+      // URL corregida según el backend
+      const response = await axiosInstance.post(`/api/progresar/prestamos/pay/${loanId}`, paymentData);
       const { data } = response.data;
 
       // Actualizar el préstamo específico en el estado
@@ -184,7 +200,8 @@ export const useLoans = () => {
         })
       );
 
-      Alert.alert("Éxito", "Cuota pagada correctamente");
+      const cuotasText = paymentData.numeroCuotas === 1 ? "cuota" : "cuotas";
+      Alert.alert("Éxito", `${paymentData.numeroCuotas} ${cuotasText} pagada(s) correctamente`);
       return data;
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || "Error al pagar cuota";
@@ -221,6 +238,13 @@ export const useLoans = () => {
     return remainingInstallments * parseFloat(loan.montoCuota);
   }, []);
 
+  const getPendingInstallmentsCount = useCallback((loan: Loan): number => {
+    if (!loan.cuotas || loan.cuotas.length === 0) {
+      return loan.numeroCuotas - loan.cuotasPagadas;
+    }
+    return loan.cuotas.filter((cuota) => cuota.estado === "pendiente").length;
+  }, []);
+
   const formatCurrency = useCallback((amount: string | number): string => {
     const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
     try {
@@ -232,6 +256,42 @@ export const useLoans = () => {
       return `S/ ${numAmount.toFixed(2)}`;
     }
   }, []);
+
+  // Validaciones del frontend que coinciden con el backend
+  const validateLoanRequest = useCallback(
+    (accountBalance: number, loanAmount: number, installmentAmount: number) => {
+      const errors: string[] = [];
+
+      // Validar monto máximo (5x el saldo)
+      const maxAllowed = accountBalance * 5;
+      if (loanAmount > maxAllowed) {
+        errors.push(
+          `Monto solicitado excede el límite. Máximo permitido: ${formatCurrency(maxAllowed)} (5x su saldo actual)`
+        );
+      }
+
+      // Validar saldo mínimo para una cuota
+      if (accountBalance < installmentAmount) {
+        errors.push(`Saldo insuficiente. Necesita al menos ${formatCurrency(installmentAmount)} para cubrir una cuota`);
+      }
+
+      // Validar capacidad de pago (70% del saldo)
+      const paymentCapacity = accountBalance * 0.7;
+      if (installmentAmount > paymentCapacity) {
+        errors.push(
+          `La cuota mensual (${formatCurrency(
+            installmentAmount
+          )}) excede su capacidad de pago recomendada (${formatCurrency(paymentCapacity)})`
+        );
+      }
+
+      return {
+        isValid: errors.length === 0,
+        errors,
+      };
+    },
+    [formatCurrency]
+  );
 
   return {
     loans,
@@ -248,6 +308,8 @@ export const useLoans = () => {
     // Utilidades
     getNextInstallment,
     getRemainingBalance,
+    getPendingInstallmentsCount,
+    validateLoanRequest,
     formatCurrency,
   };
 };
