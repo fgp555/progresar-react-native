@@ -57,11 +57,6 @@ const CustomBankingDrawer = (props: DrawerContentComponentProps) => {
         icon: "account-circle" as const,
         route: "/me",
       },
-      // {
-      //   title: "Usuarios",
-      //   icon: "group" as const,
-      //   route: "/user/list",
-      // },
     ];
 
     const adminItems = isAdmin
